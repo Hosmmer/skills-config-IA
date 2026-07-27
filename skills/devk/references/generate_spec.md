@@ -100,10 +100,19 @@ Review everything you learned:
 ### Step 2: Draft and Persist the Specification
 
 1. **Draft the spec** following the template above.
-2. **Persist it** via the content API with TWO files:
-   - `tickets/YYYY-MM/{TICKET_ID}/spec.md` — canonical spec
-   - `tickets/YYYY-MM/{TICKET_ID}/YYYY-MM-DD-feature-name_spec.md` — REQUIRED for `has_spec` detection. The XenodocIA ticket API reads `*_spec.md` files to set `has_spec: true`. Without this file, the ticket will show `has_spec: false` even though the spec exists.
-3. **Verify**: after writing, check that `GET /api/tickets/{TICKET_ID}/` returns `has_spec: true`. If not, the `*_spec.md` naming convention was not followed.
+
+2. **Determine description directory** — XenodocIA stores `description.md` in different directories based on ticket status:
+   - `status: backlog` → description at `tickets/backlog/{TICKET_ID}/description.md`
+   - `status: in-progress` or later → description at `tickets/YYYY-MM/{TICKET_ID}/description.md`
+   
+   Check the ticket status via `GET /api/tickets/{TICKET_ID}/` and check where description lives via `GET /api/content/tree/?prefix=tickets/backlog/{TICKET_ID}` and `GET /api/content/tree/?prefix=tickets/{YYYY-MM}/{TICKET_ID}`.
+
+3. **Persist spec files** via the content API:
+   - **Canonical**: `tickets/YYYY-MM/{TICKET_ID}/spec.md`
+   - **Required for has_spec**: `tickets/YYYY-MM/{TICKET_ID}/YYYY-MM-DD-feature-name_spec.md` — the XenodocIA ticket API scans for `*_spec.md` files to set `has_spec: true`. A bare `spec.md` will NOT set `has_spec: true`.
+   - **CRITICAL — if description lives in `tickets/backlog/`**: ALSO write the `YYYY-MM-DD-feature-name_spec.md` to the **same directory as the description** (`tickets/backlog/{TICKET_ID}/YYYY-MM-DD-feature-name_spec.md`). XenodocIA scans for `*_spec.md` relative to the description's directory. If the description is in `backlog/` and the `*_spec.md` is only in `YYYY-MM/`, `has_spec` will remain `false`.
+
+4. **Verify**: after writing, check that `GET /api/tickets/{TICKET_ID}/` returns `has_spec: true`. If not, the `*_spec.md` file was NOT written to the same directory as the description. Fix immediately — re-write to the description's directory.
 
 ### Step 3: Present to User
 

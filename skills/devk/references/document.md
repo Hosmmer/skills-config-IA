@@ -78,6 +78,8 @@ If the ticket introduces a NEW domain (not just modifying an existing one), upda
 
 ### 6. Output Format
 
+**CRITICAL — always show the FULL content draft, not just a summary.** The human must see exactly what will be written to each file before approving. Summaries like "Create CONTEXT.md with entities" are not enough — write the actual markdown content inline.
+
 Present it like this:
 
 ```
@@ -89,18 +91,31 @@ Present it like this:
 | ... | ... |
 
 ### 2. ADRs to Record
-**ADR-NNNN: {title}**
-- Contexto: ...
-- Trade-off: ...
-- Decision: ...
+Write the full ADR content:
+
+```markdown
+# ADR-NNNN: {title}
+...
+```
 
 ### 3. CONTEXT.md Updates
-**File**: ...
-Cambios: ...
+Write the full CONTEXT.md content:
+
+```markdown
+# Domain: {name}
+...
+```
 
 ### 4. CHANGELOG Updates
-**File**: wiki/contexts/{domain}/CHANGELOG.md
-Cambios: ...
+Write the full CHANGELOG entry:
+
+```markdown
+## {date}
+- ...
+```
+
+### 5. CONTEXT-MAP.md Changes
+Show the exact rows being added/modified.
 
 Approve this plan?
 ```

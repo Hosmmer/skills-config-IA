@@ -34,6 +34,7 @@ React 18.3, Vite, TypeScript (strict), React Router 6.26, React Query 5.56, Form
 2. **Default exports**: `export default MyComponent`
 3. **Import order**: React → 3rd-party → `@/api` → `@/contexts` → `@/services` → `@/types` → `@/components` → `@/hooks`
 4. **Type-only imports**: `import type { User } from "@/types/auth"`
+5. **Domain docs FIRST**: before creating a new feature, ensure `wiki/contexts/{domain}/CONTEXT.md` exists.
 
 ## Quick Patterns
 

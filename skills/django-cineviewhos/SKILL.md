@@ -35,6 +35,7 @@ models.py → serializers.py → services.py → views.py
 2. **Serializers**: validation + representation. No business logic.
 3. **Services**: ALL business logic. Return `ServiceResult`. Never raise for business errors.
 4. **Views**: validate serializer → call service → unwrap `ServiceResult` → return `Response`.
+5. **Domain docs FIRST**: before creating a new app, create `wiki/contexts/{domain}/CONTEXT.md`. Check `wiki/contexts/CONTEXT-MAP.md` for existing domains.
 
 ## BaseService + ServiceResult
 

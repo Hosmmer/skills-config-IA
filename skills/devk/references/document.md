@@ -57,6 +57,19 @@ Show the specific changes to each domain's CONTEXT.md:
 - Add ADR references: {link to new ADRs in the Architecture Decisions table}
 ```
 
+**NEW DOMAIN (MANDATORY CHECK):**
+
+Before documenting, check if `wiki/contexts/{domain}/CONTEXT.md` exists. If the ticket introduces a domain that doesn't have a CONTEXT.md, you MUST create one from scratch with:
+- Glossary of domain terms (Term | Definition table)
+- Entities with their key fields
+- API endpoints
+- Business rules
+
+New domains also need:
+- `wiki/contexts/{domain}/CHANGELOG.md`
+- A row in `wiki/contexts/CONTEXT-MAP.md` showing dependencies
+- A domain label via `POST /api/labels/`
+
 ### 4. CHANGELOG.md Update (MANDATORY)
 
 Every domain touched MUST have its CHANGELOG.md updated with:
@@ -106,7 +119,21 @@ Write the full CONTEXT.md content:
 ...
 ```
 
-### 4. CHANGELOG Updates
+### 4. New Domains (if applicable)
+For each new domain, write the full CONTEXT.md:
+```markdown
+# {new-domain}
+## Glossary
+...
+## Entities
+...
+## API
+...
+## Business Rules
+...
+```
+
+### 5. CHANGELOG Updates
 Write the full CHANGELOG entry:
 
 ```markdown
@@ -114,7 +141,7 @@ Write the full CHANGELOG entry:
 - ...
 ```
 
-### 5. CONTEXT-MAP.md Changes
+### 6. CONTEXT-MAP.md Changes
 Show the exact rows being added/modified.
 
 Approve this plan?
@@ -128,9 +155,10 @@ Once approved, execute ALL actions via the content API. **NEVER skip any step:**
 
 1. Copy spec to wiki specs path
 2. Write each ADR to `wiki/contexts/{domain}/adr/`
-3. Update CONTEXT.md with new entities, endpoints, and ADR references
-4. **Update CHANGELOG.md** — append entry with date, ticket ID, and summary
-5. If new domain: update CONTEXT-MAP.md and create domain label
+3. **NEW DOMAIN CHECK**: If any domain touched by this ticket doesn't have a CONTEXT.md, create it with full glossary BEFORE updating it for the ticket changes
+4. Update CONTEXT.md with new entities, endpoints, and ADR references
+5. **Update CHANGELOG.md** — append entry with date, ticket ID, and summary. Create if it doesn't exist.
+6. If new domain: update CONTEXT-MAP.md and create domain label
 
 **Verification**: After execution, run `GET /api/content/tree/?prefix=wiki/contexts/` and confirm:
 - CONTEXT.md contains the new entities/endpoints

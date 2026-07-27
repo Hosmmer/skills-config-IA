@@ -1,84 +1,100 @@
 ---
 name: django-cineviewhos
-description: "Django + DRF patterns for CineViewHos. Service-layer architecture, model/serializer/view conventions, error handling, permissions, URL routing. Load always when editing backend/**/* or xenodocIA/**/*.py."
+description: "Django + DRF patterns for CineViewHos. Service-layer architecture, model/serializer/view conventions, error handling, permissions, URL routing. Auto-loaded for backend/**/* files."
+triggers:
+  - models
+  - serializers
+  - views
+  - services
+  - urls
+  - migrations
+  - admin
+  - permissions
+  - auth
+  - api
+  - database
+  - testing
+  - architecture
+  - structure
+  - organization
+  - folders
+  - scaling
 ---
 
 # Django CineViewHos
 
-Django 3.0.7 + DRF project with a strict **4-layer service-layer architecture**:
+Django 3.0.7 + DRF project with strict **4-layer service-layer architecture**:
 
 ```
-models.py  →  serializers.py  →  services.py  →  views.py
+models.py → serializers.py → services.py → views.py
 ```
 
 ## Architecture Rules
 
-1. **Models** keep data shape and constraints. No business logic.
-2. **Serializers** handle validation and representation. Never contain business logic.
-3. **Services** contain ALL business logic. Return `ServiceResult`. Never raise exceptions for business errors.
-4. **Views** coordinate: validate serializer → call service → unwrap `ServiceResult` → return `Response`.
+1. **Models**: data shape + constraints. No business logic.
+2. **Serializers**: validation + representation. No business logic.
+3. **Services**: ALL business logic. Return `ServiceResult`. Never raise for business errors.
+4. **Views**: validate serializer → call service → unwrap `ServiceResult` → return `Response`.
 
-## Service Layer
-
-### BaseService + ServiceResult
+## BaseService + ServiceResult
 
 ```python
 from apps.core.services.base import BaseService
 from apps.core.data_classes import ServiceResult
 
-class MyService(BaseService):
-    def create_xxx(self, **kwargs) -> ServiceResult:
-        if error_condition:
-            return self.error("Message in English.", 400)
-        obj = Model.objects.create(**kwargs)
-        return self.success(data={"id": obj.id}, status_code=201)
+class GenreService(BaseService):
+    def create_genre(self, name: str, description: str = "") -> ServiceResult:
+        if Genre.objects.filter(name__iexact=name).exists():
+            return self.error("A genre with this name already exists.", 400)
+        genre = Genre.objects.create(name=name, description=description)
+        return self.success(data={"id": genre.id, "name": genre.name}, status_code=201)
 ```
 
-### Status Codes
+### Service Rules
+- Methods return `ServiceResult` (NEVER raise for business errors)
+- Use `transaction.atomic()` for multi-step DB operations
+- Use `select_for_update()` for race-condition prevention
+- Status codes: 200 ok, 201 created, 204 deleted, 400 bad request, 403 forbidden, 404 not found, 409 conflict
 
-- 200: ok with data
-- 201: created
-- 204: deleted (no content)
-- 400: validation/business error
-- 403: forbidden
-- 404: not found
-- 409: conflict
-
-### Error Pattern
-
-Services NEVER raise exceptions for business errors. Return `ServiceResult(success=False, error="msg", status_code=XXX)`.
-
-Views ALWAYS return `Response({"detail": result.error}, status=result.status_code)` for errors.
-
-### Transaction + Locking
+## Views
 
 ```python
-with transaction.atomic():
-    reserva = Reserva.objects.select_for_update().get(id=reserva_id)
+# Admin views (views.py) — permission_classes = [IsAuthenticated, IsAdminUser]
+# Public views (views_public.py) — permission_classes = [IsAuthenticated]
+
+def create(self, request, *args, **kwargs):
+    serializer = self.get_serializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    service = GenreService()
+    result = service.create_genre(**serializer.validated_data)
+    if result.success:
+        return Response(result.data, status=result.status_code)
+    return Response({"detail": result.error}, status=result.status_code)
 ```
 
-## Deep-Dive References
+### Key View Patterns
+- Always return `{"detail": result.error}` for errors
+- `get_serializer_class()` to switch by action (list vs detail)
+- `get_queryset()` for `select_related`, `prefetch_related`, user scoping
+- `get_permissions()` for dynamic permission selection
+- `@action(detail=True, methods=["post"])` for custom routes
+- Override `update()` to force `partial = True`
 
-For detailed patterns, read the reference files in `backend/.opencode/skills/django/references/`:
-
-- **models-orm.md** — Model conventions, fields, Meta, soft delete, signals
-- **drf-serializers.md** — Serializer patterns, naming, related data, validation
-- **viewsets-views.md** — ViewSet types, admin/public split, permissions, actions
-- **testing-django.md** — Pytest fixtures, service/view test patterns
-
-## Quick Conventions
+## Key Conventions
 
 | Item | Convention |
 |------|-----------|
-| Import order | stdlib → django/rest_framework → `apps.*` |
-| Internal imports | Absolute `apps.movies.models` or relative `.models` |
-| URL basename | `admin-{model}` for admin, `{model}` for public |
-| Soft delete | `is_active = False`, never hard-delete |
+| Model base | `TimeStampedMixin` (created_at, updated_at) |
+| FK on_delete | PROTECT for references, CASCADE for owned children |
+| Soft delete | `is_active = False`, never hard-delete entities with relationships |
 | "Anular" | Never "cancelar" for reservations |
 | Error messages | English |
-| Field names / models | Spanish where domain-appropriate (`sala`, `funcion`, `reserva`) |
-| `settings.AUTH_USER_MODEL` | Always use, never hardcode User model |
-| `get_user_model()` | Import at runtime for User references |
+| Field/spa names | Spanish where domain-appropriate (sala, funcion, reserva) |
+| User FK | `settings.AUTH_USER_MODEL`, import via `get_user_model()` |
+| Import order | stdlib → django/rest → `apps.*` |
+| URL basename | `admin-{model}` for admin, `{model}` for public |
+| Serializer fields | Explicit list, never `__all__`; id first, timestamps last |
+| Serializer naming | `XxxSerializer` (detail), `XxxListSerializer` (list), `AdminXxxSerializer` (admin) |
 
 ## File Layout per App
 
@@ -87,9 +103,21 @@ apps/{domain}/
 ├── models.py
 ├── serializers.py
 ├── services.py
-├── views.py          # Admin views
-├── views_public.py   # Public/authenticated views
-├── urls.py            # Admin URLs
+├── views.py          # Admin endpoints (/api/admin/)
+├── views_public.py   # Public endpoints (/api/)
+├── urls.py            # Admin URLs (DefaultRouter)
 ├── urls_public.py     # Public URLs
-└── admin.py           # Django admin (if needed)
+└── admin.py           # Django admin (optional)
 ```
+
+## Deep-Dive References
+
+Read the relevant file BEFORE writing code (files in `.opencode/skills/django/references/`):
+
+| If writing... | Read... |
+|--------------|---------|
+| Models | `references/models-orm.md` — fields, Meta, soft delete, signals |
+| Serializers | `references/drf-serializers.md` — naming, related data, validation |
+| Views/ViewSets | `references/viewsets-views.md` — admin/public split, permissions, actions |
+| Tests | `references/testing-django.md` — pytest fixtures, service/view test patterns |
+| **Architecture** | `references/architecture.md` — project structure, scaling rules, service splitting |

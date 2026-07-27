@@ -1,51 +1,49 @@
 ---
 name: react-CineViewHos
-description: "React 18 + Vite + TypeScript patterns for CineViewHos. Component patterns, forms (Formik+Yup), data fetching (React Query+Axios), routing, imports. Load always when editing frontend/**/*."
+description: "React 18 + Vite + TypeScript patterns for CineViewHos. Component patterns, forms (Formik+Yup), data fetching (React Query+Axios), routing, imports. Auto-loaded for frontend/**/* files."
+triggers:
+  - components
+  - hooks
+  - forms
+  - state
+  - routing
+  - types
+  - api
+  - design
+  - performance
+  - testing
+  - architecture
+  - structure
+  - organization
+  - folders
+  - scaling
+  - features
 ---
 
 # React CineViewHos
 
 React 18 + Vite + TypeScript frontend with dark cinema theme.
 
-## Tech Stack
+## Stack
 
-- React 18.3, Vite, TypeScript (strict)
-- React Router 6.26, TanStack React Query 5.56
-- Formik 2.4 + Yup 1.4, Axios 1.7
-- Tailwind CSS 3.4, lucide-react 1.18
-- react-intl 6.7 (i18n infra ready, not actively used)
-- Vitest + Testing Library (vitest.config with jsdom)
+React 18.3, Vite, TypeScript (strict), React Router 6.26, React Query 5.56, Formik 2.4 + Yup 1.4, Axios 1.7, Tailwind CSS 3.4, lucide-react 1.18, react-intl 6.7 (infra, not actively used), Vitest + Testing Library
 
 ## Component Rules (HARD)
 
-1. **Function declarations only** — `function MyComp() {}`, never arrow functions
-2. **Default exports** — `export default MyComponent`
+1. **Function declarations only**: `function MyComp() {}`, NEVER arrow functions
+2. **Default exports**: `export default MyComponent`
 3. **Import order**: React → 3rd-party → `@/api` → `@/contexts` → `@/services` → `@/types` → `@/components` → `@/hooks`
+4. **Type-only imports**: `import type { User } from "@/types/auth"`
 
-## Imports
+## Quick Patterns
+
+### Forms (Formik + Yup)
 
 ```typescript
-// React
-import { useState, useEffect, useRef, useContext } from "react";
-import { Link, useNavigate, useParams, useLocation, useSearchParams } from "react-router-dom";
-
-// 3rd-party
 import { useFormik } from "formik";
-import * as yup from "yup";          // auth pages
+import * as yup from "yup";         // auth pages
 import * as Yup from "yup";          // admin pages
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { User, ChevronDown, X } from "lucide-react";
 
-// Internal (type-only imports use `import type`)
-import type { User } from "@/types/auth";
-import type { MovieList, PaginatedResponse } from "@/types/movies";
-import { useAuth } from "@/contexts/AuthContext";
-import { fetchMovies, deleteMovie } from "@/services/movieService";
-```
-
-## Forms (Formik + Yup)
-
-```typescript
 const validationSchema = yup.object({
   name: yup.string().required("Name is required"),
 });
@@ -56,18 +54,20 @@ const formik = useFormik({
   enableReinitialize: true,
   onSubmit: async (values, { setFieldError }) => {
     try {
-      await doSomething(values);
+      await action(values);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Default error";
+      const msg = err instanceof Error ? err.message : "Error";
       setFieldError("name", msg);
     }
   },
 });
 ```
 
-Input pattern:
+### Input Template
+
 ```tsx
-<input id="name" type="text"
+<input
+  id="name" type="text"
   {...formik.getFieldProps("name")}
   className={`w-full bg-gray-800 text-white text-sm rounded-lg px-4 py-2.5 border ${
     formik.touched.name && formik.errors.name
@@ -79,43 +79,83 @@ Input pattern:
 )}
 ```
 
-## Data Fetching
+### Data Fetching
 
 ```typescript
-// Query
 const { data, isLoading, error } = useQuery<PaginatedResponse<MovieList>>({
-  queryKey: ["public-movies"],
+  queryKey: ["admin-movies"],
   queryFn: () => fetchMovies({ ordering: "-created_at" }),
 });
 
-// Mutation
 const deleteMutation = useMutation({
   mutationFn: deleteMovie,
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ["admin-movies"] });
-    setDeleteId(null);
-  },
+  onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-movies"] }),
 });
 ```
 
-## Loading States
+### Mutation Error
 
-- **Spinner**: `<div className="animate-spin h-8 w-8 border-4 border-red-500 border-t-transparent rounded-full" />`
-- **Skeleton**: `<div className="h-12 bg-gray-800 rounded animate-pulse" />`
-- **Button**: `{isPending ? "Saving..." : "Save"}`
+```typescript
+const serverError = (createMutation.error || updateMutation.error) as {
+  response?: { data?: { detail?: string; name?: string[] } };
+} | null;
+```
 
-## Error States
+## State Architecture
 
-- **Full page**: `text-red-400` message + Retry button
-- **Field**: `text-red-400 text-xs mt-1`
-- **Banner**: `text-sm text-red-400 bg-red-900/20 border border-red-900/50 rounded-lg px-4 py-3`
+| State Type | Tool |
+|-----------|------|
+| Server | React Query (useQuery, useMutation) |
+| Form | Formik (useFormik) |
+| UI | React useState |
+| Auth | AuthContext (single context) |
+| Persistent | localStorage (auth_tokens, auth_user, sidebar_collapsed) |
+
+DO NOT add extra context providers or state management libraries.
+
+## Loading / Error States
+
+- **Spinner**: `animate-spin h-8 w-8 border-4 border-red-500 border-t-transparent rounded-full`
+- **Skeleton**: `h-12 bg-gray-800 rounded animate-pulse`
+- **Full page error**: `text-red-400` + Retry button (invalidates query)
+- **Form field error**: `text-red-400 text-xs mt-1`
+- **Error banner**: `text-sm text-red-400 bg-red-900/20 border border-red-900/50 rounded-lg px-4 py-3`
+- **Button loading**: `{isPending ? "Saving..." : "Save"}`
+
+## CRUD Pattern (Admin)
+
+Every admin entity: `Admin{Entity}List.tsx` (table + delete modal + pagination) + `Admin{Entity}Form.tsx` (create = no id, edit = id from useParams).
+
+## Routing
+
+Routes are modularized by auth level in `src/routes/`:
+
+```
+src/routes/
+├── index.tsx            # Composes all groups under MainLayout
+├── public.tsx           # No auth: /login, /register, /password/*
+├── protected.tsx        # Auth: /, /movies/:id, /profile, etc.
+└── admin.tsx            # Staff: /admin/** CRUD
+```
+
+**App.tsx** is thin: `import AppRoutes from "@/routes"; function App() { return <AppRoutes />; }`
+
+### Adding a new route:
+1. Choose the correct route file (public / protected / admin)
+2. Add `const NewPage = lazy(() => import("@/pages/NewPage"));`
+3. Add the `<Route>` (wrap in `ProtectedRoute` if needed)
+4. NEVER touch `App.tsx` or `routes/index.tsx`
 
 ## Deep-Dive References
 
-Read `frontend/.opencode/skills/react/references/`:
-- **hooks-patterns.md** — Custom hooks, useQuery, useMutation, Formik+Query
-- **state-management.md** — Context, localStorage, useState
-- **component-architecture.md** — Component types, layout strategy, CRUD pattern
-- **testing-react.md** — Vitest + Testing Library + customRender
-- **performance.md** — Lazy loading, caching, memo rules
-- **i18n.md** — react-intl setup and conventions
+Read BEFORE writing code (files in `.opencode/skills/react/references/`):
+
+| If working on... | Read... |
+|-----------------|---------|
+| Custom hooks, React Query | `references/hooks-patterns.md` |
+| Context, localStorage, state | `references/state-management.md` |
+| Components, layouts, routing | `references/component-architecture.md` |
+| Tests | `references/testing-react.md` |
+| Performance, lazy loading | `references/performance.md` |
+| i18n | `references/i18n.md` |
+| **Architecture** | `references/architecture.md` — project structure, feature folders, scaling rules |

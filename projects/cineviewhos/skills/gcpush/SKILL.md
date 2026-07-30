@@ -7,6 +7,8 @@ description: Commits and pushes changes in the current git repo. Auto-generates 
 
 Commits and pushes changes in the current git repo.
 
+**HARD RULE: NEVER push directly to main/master. NEVER use raw `git push`. ALWAYS use this skill workflow. Main is protected — all changes go through feature branches and PRs.**
+
 ## Configuration
 
 This skill works with the current git repo (detected from cwd). For multi-repo setups, check the project's AGENTS.md for the repo layout.

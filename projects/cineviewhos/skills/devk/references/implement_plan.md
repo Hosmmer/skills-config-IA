@@ -68,6 +68,12 @@ Before starting any phase, locate that phase's `Skills:` line under `### Skills 
 
 **Hard rule for database changes**: NEVER modify the database directly (via `manage.py shell`, `psql`, or raw SQL) without explicit user permission. Module names, roles, configuration data — all belong to the user. Your job is code, not data. The user manages their own data through the admin UI.
 
+**Hard rule for git workflow**: NEVER push directly to main/master. NEVER use raw `git push`. The only valid workflow is:
+1. `/gcpush` — commits and pushes to a feature branch (creates branch if on main)
+2. `/gpr` — creates a Pull Request from feature branch to main
+3. User merges to main
+No exceptions. Main is protected.
+
 **Announce which skills you're loading so the human can verify:**
 
 ```

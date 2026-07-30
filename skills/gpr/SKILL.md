@@ -76,6 +76,30 @@ After the PR is created, wait for CI and handle the result:
 
 Only after merge succeeds, move the associated ticket to the post-merge status (check the project's AGENTS.md for the tracker API and workflow conventions).
 
+### 2f. Cleanup — delete merged branch (MANDATORY after merge)
+
+After the PR is merged, ALWAYS clean up the feature branch:
+
+```bash
+# 1. Switch to main
+git checkout main && git pull origin main
+
+# 2. Delete the local feature branch
+git branch -d <feature-branch>
+
+# 3. Delete the remote feature branch
+git push origin --delete <feature-branch>
+
+# 4. Prune stale remote tracking refs
+git fetch --prune
+```
+
+**Safety checks:**
+- Confirm the PR is fully merged (not just closed) before deleting
+- If `git branch -d` fails (branch not fully merged), warn user and skip deletion
+- Never delete `main`, `master`, `staging`, or `develop` branches
+- If the remote branch is already deleted, skip `git push origin --delete` gracefully
+
 ---
 
 ## Step 3 — Summary

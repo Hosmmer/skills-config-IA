@@ -1,68 +1,62 @@
 ---
 name: gcpush
-description: Commits and pushes changes in the current git repo. Auto-generates commit message from diff. If on main, creates a feature branch before committing. Use when user runs /gcpush or asks to commit and push changes.
+description: Commits and pushes changes in the current git repo. Auto-generates a commit message from the diff. If on main, creates a feature branch before committing. Use when user runs /gcpush or asks to commit and push changes.
 ---
 
 # gcpush
 
 Commits and pushes changes in the current git repo.
 
-## Auto-detection
+## Configuration
 
-Detect the repo path automatically:
-```bash
-git rev-parse --show-toplevel
-```
-
-Use this as `<repo_path>` for all commands. If the command fails, the user isn't inside a git repo — show an error and stop.
+This skill works with the current git repo (detected from cwd). For multi-repo setups, check the project's AGENTS.md for the repo layout.
 
 ## Steps
 
 ### 1. Check status
 ```bash
-git -C <repo_path> status --short --branch
+git status --short --branch
 ```
 Skip if there are no changes.
 
 ### 2. Validate branch
-If on `main` or `master`, create a new branch:
+If the current branch is `main` or `master`, create a new branch before continuing:
 ```bash
-git -C <repo_path> checkout -b <auto-name>
+git checkout -b <auto-name>
 ```
-Auto-name format: `feat/<short-slug-from-diff>` — derive from the staged/unstaged changes. Keep it under 40 chars, kebab-case.
+Auto-name format: `feat/<short-slug-from-diff>` — derive it from the staged/unstaged changes (e.g. `feat/add-product-endpoint`, `feat/update-login-form`). Keep it under 40 chars, kebab-case.
 
 ### 3. Stage all changes
 ```bash
-git -C <repo_path> add -A
+git add -A
 ```
 
 ### 4. Generate commit message
-Read `git -C <repo_path> diff --cached` and write a Conventional Commits message:
+Read `git diff --cached` and write a message in Conventional Commits format:
 - Format: `<type>(<optional scope>): <summary>`
 - Types: `feat`, `fix`, `refactor`, `docs`, `style`, `test`, `chore`
 - Summary: imperative mood, ≤72 chars, no trailing period
 
 ### 5. Commit
 ```bash
-git -C <repo_path> commit -m "<generated message>"
+git commit -m "<generated message>"
 ```
 
 ### 6. Push
 ```bash
-git -C <repo_path> push origin <branch>
+git push origin <branch>
 ```
-If no upstream exists: `git -C <repo_path> push --set-upstream origin <branch>`
+If no upstream exists (new branch): `git push --set-upstream origin <branch>`
 
 ## Output
 
-```
-| Repo | Branch | Commit | Status |
-|------|--------|--------|--------|
-| repo | feat/add-endpoint | feat(api): add endpoint | ✓ pushed |
-```
+Show a summary:
+| Branch | Commit | Status |
+|--------|--------|--------|
+| feat/add-endpoint | feat(api): add product endpoint | ✓ pushed |
 
 ## Error handling
 
-- **Dirty merge conflict**: stop, report, suggest resolving manually.
-- **Auth failure**: suggest checking SSH keys or `gh auth login`.
-- **Nothing to commit**: mark as skipped.
+- **Dirty merge conflict**: stop, report, let user resolve.
+- **Auth / push failure**: print the error, suggest checking SSH keys/credentials.
+- **Nothing to commit after staging**: mark as skipped.

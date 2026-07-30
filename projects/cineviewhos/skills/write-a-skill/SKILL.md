@@ -27,10 +27,10 @@ description: Create new agent skills with proper structure, progressive disclosu
 
 ```
 skill-name/
-├── SKILL.md           # Main instructions (required)
-├── REFERENCE.md       # Detailed docs (if needed)
-├── EXAMPLES.md        # Usage examples (if needed)
-└── scripts/           # Utility scripts (if needed)
+├── SKILL.md          # Main instructions (required)
+├── REFERENCE.md      # Detailed docs (if needed)
+├── EXAMPLES.md       # Usage examples (if needed)
+└── scripts/          # Utility scripts (if needed)
     └── helper.js
 ```
 
@@ -102,7 +102,7 @@ Scripts save tokens and improve reliability vs generated code.
 Split into separate files when:
 
 - SKILL.md exceeds 100 lines
-- Content has distinct domains (finance vs sales schemas)
+- Content has distinct domains
 - Advanced features are rarely needed
 
 ## Review Checklist

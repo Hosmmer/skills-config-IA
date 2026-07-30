@@ -51,18 +51,6 @@ When this reference is loaded:
 
 ## Plan Generation Process
 
-### Step 0: Naming and Visibility Requirements
-
-The plan MUST be written to the content API with the naming convention `YYYY-MM-DD-feature-name_plan.md`.
-
-**Canonical path**: Write to `tickets/YYYY-MM/{TICKET_ID}/YYYY-MM-DD-feature-name_plan.md`.
-
-**CRITICAL — backlog tickets**: If the ticket's `description.md` lives at `tickets/backlog/{TICKET_ID}/description.md` (true for `status: backlog` tickets), ALSO write the `*_plan.md` to `tickets/backlog/{TICKET_ID}/` (the same directory as the description). XenodocIA detects `*_plan.md` files relative to the description's directory — without a copy there, `has_plan` will remain false.
-
-**Verify**: After writing, check `GET /api/tickets/{TICKET_ID}/` for `has_plan: true`. If false, the `*_plan.md` is not in the description's directory. Fix immediately.
-
-Also verify via content tree: `GET /api/content/tree/?prefix=tickets/YYYY-MM/{TICKET_ID}` and (if backlog) `GET /api/content/tree/?prefix=tickets/backlog/{TICKET_ID}`.
-
 ### Step 1: Read and Analyze Inputs
 
 1. **Read the fetched spec content fully** — understand all requirements, acceptance criteria, and constraints

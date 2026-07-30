@@ -28,8 +28,8 @@ When concluding a Context Analysis, structure your summary exactly like this:
 
 ### Key Decisions
 1. **[Decision Topic]**: [Specific decision made]
-   - *Rationale*: [Why this decision]
-   - *Trade-off*: [What was chosen over what]
+ - *Rationale*: [Why this decision]
+ - *Trade-off*: [What was chosen over what]
 
 ### Critical Constraints
 - **[Constraint Name]**: [Specific limitation and impact]

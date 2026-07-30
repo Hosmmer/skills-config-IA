@@ -32,17 +32,17 @@ Keep it short. 3-5 findings bullets, maximum 2 options. The user should be able 
 
 ### Step 3: Get explicit approval
 
-Use the `question` tool with a simple yes/no. DO NOT touch code until receiving a "yes" or equivalent.
+Use the `question` tool or ask for a simple yes/no. DO NOT touch code until receiving a "yes" or equivalent.
 
 ### Step 4: Implement
 
 - Make all edits with the Edit tool.
-- If DB migration is needed, generate the file with `python manage.py makemigrations`. DO NOT apply it — the user decides when to migrate.
+- If DB migration is needed, generate the file with the project's migration command (`python manage.py makemigrations` for Django). DO NOT apply it — the user decides when to migrate.
 - Show a brief summary of what was changed when done.
 
 ### Step 5: Verify
 
-- Run the project's linter if it exists (`ruff check`, `make lint`, etc.).
+- Run the project's linter (check AGENTS.md or Makefile for the canonical command).
 - Run relevant tests if they exist and can be executed locally.
 - Confirm no references to the old pattern remain (re-grep if necessary).
 
@@ -50,7 +50,7 @@ Use the `question` tool with a simple yes/no. DO NOT touch code until receiving 
 
 - ❌ Jump straight to editing without presenting findings and options
 - ❌ Write a plan file for a simple change
-- ❌ Spawn multiple agents for a 1-file change
+- ❌ Spawn 3+ sub-agents for a 1-file change
 - ❌ Run migrations without explicit user permission
 - ❌ Add code comments unless the user requests it
 - ❌ Create new files unless the change actually requires it

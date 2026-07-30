@@ -10,9 +10,9 @@ Generate a detailed, phased implementation plan from an approved specification d
 ## Prerequisites
 
 Before generating a plan, you must have:
-1. An approved specification document at `thoughts/tickets/TICKET-123/YYYY-MM-DD-feature-name_spec.md`
+1. An approved specification, fetched via the project's tracker/content API. Check the project's AGENTS.md for the API configuration.
 2. Access to the codebase for validation
-3. The JIRA ticket number (extracted from the spec file path)
+3. The ticket number (already known from the spec-generation step)
 
 ## Role
 
@@ -22,36 +22,43 @@ You are a senior software architect. Your job is to translate a specification in
 
 **LANGUAGE: Write the entire plan document in English — all sections, phase descriptions, success criteria, notes, everything. No exceptions.**
 
-## Environment
+## Environment Adaptation
 
-- Write plans to `thoughts/tickets/TICKET-123/YYYY-MM-DD-feature-name_plan.md`
-- Plan goes in the SAME directory as the spec file
-- Filename format: `YYYY-MM-DD-feature-name_plan.md` (note the `_plan.md` suffix)
-- `thoughts/` lives at the project root. Always use `thoughts/` as a relative path from the project root.
-  - Full example: `thoughts/tickets/TICKET-123/2026-06-13-feature-name_plan.md`
-- Use `Skills: (none)` on all phases
-- Use whatever commands exist in the project (`pytest`, `ruff check`, `npm run lint`, etc.)
+This skill runs in multiple environments. Auto-detect which one and adapt:
+
+Both Claude Code and OpenCode:
+- Persist plans via the project's content API. Check AGENTS.md for the convention (path format, API URL).
+- Plan goes at the same path prefix as the spec (same ticket).
+- Filename format: `YYYY-MM-DD-feature-name_plan.md`
+
+**Claude Code** (sub-agents `Explore`, `general-purpose` available):
+- Read `repo_skills_discovery.md` and tag project-local skills AND rules per phase
+- Use project's canonical commands (Makefile, AGENTS.md).
+
+**OpenCode** (sub-agents `explore`, `general` available):
+- Read `repo_skills_discovery.md` and tag project-local skills AND rules per phase
+- Discover the project's canonical commands from its Makefile or AGENTS.md.
 
 ## Getting Started
 
 When this reference is loaded:
 
-1. **Extract ticket number from spec file path** (e.g., `thoughts/tickets/TICKET-123/...` → `TICKET-123`)
-2. **Read the specification file completely** from `thoughts/tickets/TICKET-123/*_spec.md`
-3. **Try to find and read AGENTS.md or .opencode/opencode.json** (if it exists in project root)
+1. **Know the ticket number** (already established when the spec was generated)
+2. **Fetch the specification completely** via the project's tracker/content API
+3. **Try to find and read the project's convention file** (AGENTS.md, CLAUDE.md, etc.)
 4. **Verify understanding by cross-referencing spec with codebase**
-5. **Begin plan generation** — output will go to `thoughts/tickets/TICKET-123/YYYY-MM-DD-feature-name_plan.md`
+5. **Begin plan generation** — output will be persisted via the content API
 
 ## Plan Generation Process
 
 ### Step 1: Read and Analyze Inputs
 
-1. **Read the spec file fully** — understand all requirements, acceptance criteria, and constraints
-2. **Look for CLAUDE.md** — read it if it exists to understand project conventions
+1. **Read the fetched spec content fully** — understand all requirements, acceptance criteria, and constraints
+2. **Look for convention files** — read them to understand project conventions
 3. **Verify entities and patterns** — use research tools to confirm:
-   - Models/entities mentioned in spec actually exist (or where they should be created)
-   - Patterns and conventions are current
-   - File paths referenced are accurate
+  - Models/entities mentioned in spec actually exist (or where they should be created)
+  - Patterns and conventions are current
+  - File paths referenced are accurate
 
 ### Step 2: Break Down into Phases
 
@@ -118,7 +125,7 @@ Map each test to specific acceptance criteria from the spec:
 
 #### Skills Required
 
-Skip this step. All phases get `Skills: (none)`.
+Read `references/repo_skills_discovery.md`. Discover available skills in the repo's skills directory and match them to each phase by their trigger terms.
 
 Format:
 ```
@@ -127,6 +134,19 @@ Skills: skill-a, skill-b, skill-c
 or
 ```
 Skills: (none)
+```
+
+#### Rules Required
+
+Read `references/repo_skills_discovery.md`. Discover available rules in the repo's rules directory and match them to each phase.
+
+Format:
+```
+Rules: 01-architecture, 04-database-models
+```
+or
+```
+Rules: (none)
 ```
 
 #### Success Criteria
@@ -171,16 +191,16 @@ Document anything not explicit in the spec:
 - Rollback plan
 
 #### References
-- Link to the spec: `thoughts/tickets/TICKET-123/[spec-file]_spec.md`
-- Link to CLAUDE.md (if exists)
+- Link to the spec
+- Link to project convention files
 - Related code patterns: `[file:line]`
 
 ## Plan Template Structure
 
-````markdown
+```markdown
 # [Feature Name] Implementation Plan
 
-**Based on specification**: `thoughts/tickets/TICKET-123/YYYY-MM-DD-feature-name_spec.md`
+**Based on specification**: ticket `{TICKET_ID}`
 
 ## Overview
 
@@ -191,23 +211,20 @@ Document anything not explicit in the spec:
 This plan implements the following from the spec:
 - [Key requirement 1]
 - [Key requirement 2]
-- [Key requirement 3]
 
 ## Files to Create
 
 1. `path/to/file` — [purpose]
-2. `path/to/file` — [purpose]
 
 ## Files to Modify
 
 1. `path/to/file` — [specific changes]
-2. `path/to/file` — [specific changes]
 
 ## Dependencies to Install
 
 ```bash
-pip install package-name==version  # [reason]
-npm install package-name@version   # [reason]
+pip install package-name==version # [reason]
+npm install package-name@version # [reason]
 ```
 
 ## Implementation Approach
@@ -222,107 +239,68 @@ npm install package-name@version   # [reason]
 [What this phase accomplishes and which spec criteria it addresses]
 
 ### Files to Create
-
-**File**: `path/to/file.py`
-**Purpose**: [Why needed]
-**Key components**: [What it contains]
+[...]
 
 ### Files to Modify
-
-**File**: `path/to/file.py`
-**Changes**: [Specific modifications]
-**Reason**: [Why per spec]
-
-### Dependencies
-
-**Package**: `package-name==version`
-**Purpose**: [Why needed]
+[...]
 
 ### Implementation Order
-
 1. [Concrete step 1]
 2. [Concrete step 2]
-3. [Concrete step 3]
 
 ### Test Cases
-
-**Test**: `test_name`
-**Maps to spec criterion**: "[Quote from spec acceptance criteria]"
-**Covers**: [What it verifies]
+[...]
 
 ### Skills Required
+Skills: [comma-separated, or "(none)"]
 
-Skills: [comma-separated skill names, or "(none)"]
+### Rules Required
+Rules: [comma-separated, or "(none)"]
 
 ### Success Criteria
 
 #### Automated Verification:
-- [ ] Tests pass: `pytest path/to/tests`
-- [ ] Linting passes: `ruff check .`
-- [ ] Type checking passes: `mypy .`
+- [ ] Tests pass
+- [ ] Linting passes
 
 #### Manual Verification:
-- [ ] [Specific acceptance criterion from spec verified]
+- [ ] [Specific criterion from spec verified]
 - [ ] [Edge case handling confirmed]
-- [ ] [No regressions in related features]
 
-**Implementation Note**: After completing this phase and all automated verification passes, pause here for manual confirmation from the human that the manual testing was successful before proceeding to the next phase.
+**Implementation Note**: After completing this phase and all automated verification passes, pause here for manual confirmation.
 
 ### Assumptions
-- [Assumption 1 not explicit in spec]
-- [Assumption 2 about implementation approach]
+- [Assumption 1]
 
 ---
 
 ## Phase 2: [Descriptive Name]
-
 [Similar structure...]
 
 ---
 
 ## Testing Strategy
-
-### Unit Tests
-- [Approach based on spec acceptance criteria]
-- [Key test cases derived from spec]
-
-### Integration Tests
-- [End-to-end scenarios from spec]
-
-### Manual Testing Checklist
-1. [Test step mapping to spec criterion 1]
-2. [Test step mapping to spec criterion 2]
-3. [Edge case from spec]
+[...]
 
 ## Performance Considerations
-
-[Any performance requirements or considerations from spec]
+[...]
 
 ## Migration Notes
-
-[If applicable based on spec data model changes]
+[...]
 
 ## References
-
-- Specification: `thoughts/tickets/TICKET-123/YYYY-MM-DD-feature-name_spec.md`
-- Project conventions: `CLAUDE.md` (if exists)
-- Similar implementation: `[file:line]`
+[...]
 
 ## Assumptions Summary
-
-All assumptions made during planning (consolidated from phases):
-1. [Assumption 1]
-2. [Assumption 2]
-3. [Assumption 3]
-````
+[...]
+```
 
 ## Presenting the Plan
 
 After generating the plan, present it to the user:
 
 ```
-I've generated the implementation plan at:
-`thoughts/tickets/TICKET-123/YYYY-MM-DD-feature-name_plan.md`
+I've generated the implementation plan for {TICKET_ID}.
 
 The plan includes:
 - [N] phases with clear success criteria
@@ -335,8 +313,6 @@ Please review the plan and let me know:
 - Do the phases have the right scope and order?
 - Are all acceptance criteria from the spec addressed?
 - Are the assumptions reasonable?
-
-> **Before implementing:** Make sure the spec and plan are pushed and visible to the team. Run `/gcpush` + `/gpr` so the files are on a branch the team can reference. You don't need to wait for the PR to merge to start coding.
 - Any technical details that need adjustment?
 
 We can iterate on the plan until it's ready for implementation.
@@ -354,28 +330,23 @@ Be ready to:
 ## Important Guidelines
 
 1. **Traceability**: Every phase should clearly map back to spec acceptance criteria
-
-2. **Completeness**: Address ALL acceptance criteria from the spec — don't leave any out
-
-3. **Testability**: Every success criterion should be verifiable (automated or manual)
-
+2. **Completeness**: Address ALL acceptance criteria from the spec
+3. **Testability**: Every success criterion should be verifiable
 4. **Clarity**: Implementation steps should be concrete enough that an agent can execute them
-
-5. **No Open Questions**: Unlike the spec, the plan should have NO open questions. All decisions must be made. If uncertain about an approach:
-   - Research the codebase for patterns
-   - Make a documented assumption
-   - Choose the most conservative/safest option
-
+5. **No Open Questions**: The plan should have NO open questions. All decisions must be made.
 6. **Respect Spec Boundaries**: Don't add features not in the spec. Don't skip requirements that are in the spec.
 
 ## Anti-patterns (what to NEVER do)
 
-- ❌ Writing code during plan generation
-- ❌ Skipping acceptance criteria from the spec
-- ❌ Adding features not in the spec
-- ❌ Leaving implementation steps vague ("update the models")
-- ❌ Missing the `Skills:` line entirely on any phase (use `Skills: (none)`)
-- ❌ Having open questions in the final plan
+- Writing code during plan generation
+- Skipping acceptance criteria from the spec
+- Adding features not in the spec
+- Leaving implementation steps vague ("update the models")
+- Forgetting to tag skills or rules on phases
+- Missing the `Skills:` or `Rules:` line entirely on any phase
+- Proposing files that violate an architecture rule
+- Having open questions in the final plan
+- Introducing a UI/UX change in the plan that isn't already listed in the spec — this is scope creep
 
 ## Next Steps
 

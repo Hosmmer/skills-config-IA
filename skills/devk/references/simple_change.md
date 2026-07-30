@@ -46,19 +46,6 @@ Use the `question` tool or ask for a simple yes/no. DO NOT touch code until rece
 - Run relevant tests if they exist and can be executed locally.
 - Confirm no references to the old pattern remain (re-grep if necessary).
 
-### Step 6: QA
-
-- Move ticket to `qa`.
-- Read `references/qa.md`.
-- Present manual verification checklist. Human-led — never self-execute and self-report.
-
-### Step 7: Document
-
-- Read `references/document.md`.
-- Present documentation plan. Get explicit approval before writing.
-- At minimum: CHANGELOG entry.
-- Move ticket to `ready-to-deploy` only AFTER docs are complete.
-
 ## Anti-patterns (what to NEVER do)
 
 - ❌ Jump straight to editing without presenting findings and options
@@ -68,5 +55,3 @@ Use the `question` tool or ask for a simple yes/no. DO NOT touch code until rece
 - ❌ Add code comments unless the user requests it
 - ❌ Create new files unless the change actually requires it
 - ❌ Explain the code after editing — just make the change and stop
-- ❌ Skip QA — every change needs human verification
-- ❌ Move to `ready-to-deploy` without completing Document phase

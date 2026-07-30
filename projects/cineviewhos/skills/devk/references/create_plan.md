@@ -3,7 +3,12 @@ description: Create detailed implementation plans through interactive research a
 model: opus
 ---
 
-> Every phase in the final plan must include a `Skills:` line (use `Skills: (none)` explicitly — never omit the line).
+> **Before writing any phase, read `references/repo_skills_discovery.md` to discover and tag
+> the project's local skills and rules.**
+> These are filesystem files — load them with `Read`.
+>
+> Every phase in the final plan must include BOTH a `Skills:` line and a `Rules:` line (use `(none)`
+> explicitly when no match — never omit either line).
 
 # Implementation Plan
 
@@ -11,18 +16,32 @@ You are tasked with creating detailed implementation plans through an interactiv
 
 **LANGUAGE: Write the entire plan document in English — all sections, phase descriptions, success criteria, notes, everything. No exceptions.**
 
-## Environment
+## Environment Adaptation
 
-- `thoughts/` lives at the project root. Always use `thoughts/` as a relative path from the project root.
-- Use direct Glob + Grep + Read, or `explore`/`general` agent
-- Write plans to `thoughts/tickets/TICKET-123/YYYY-MM-DD-description.md`
-- Use whatever commands exist in the project (`bench`, `pytest`, `ruff check`, etc.)
+This skill runs in multiple environments. Auto-detect which one and adapt.
+
+**CRITICAL — Workspace layout**: Check the project's AGENTS.md for:
+- Content/wiki API configuration and path conventions
+- Where plans are persisted (content API vs local files)
+- Ticket path conventions
+
+Plan persistence: if the project uses a content API (S3-backed or similar), persist plans via the API. If it uses local files, write to the appropriate local directory. Check AGENTS.md for the convention.
+
+**Claude Code** (sub-agents `Explore`, `general-purpose` available):
+- Read `repo_skills_discovery.md` and tag project-local skills AND rules per phase
+- Use project's canonical commands.
+
+**OpenCode** (sub-agents `explore`, `general` available):
+- Read `repo_skills_discovery.md` and tag project-local skills AND rules per phase
+- Discover the project's canonical commands from its Makefile or AGENTS.md.
 
 ## Initial Response
 
 When this command is invoked:
 
-1. **Check if parameters were provided**: The user's message IS the task description. Proceed directly to Step 1.
+1. **Check if parameters were provided**:
+  - If a file path or ticket reference was provided, skip the default message. Immediately read any provided files FULLY. Begin the research process.
+  - Otherwise, the user's message IS the task description. Proceed directly to Step 1.
 
 2. **If no parameters provided**, respond with:
 ```
@@ -43,358 +62,97 @@ Then wait for the user's input.
 ### Step 1: Context Gathering & Initial Analysis
 
 1. **Read all mentioned files immediately and FULLY**:
-   - Ticket files
-   - Research documents
-   - Related implementation plans
-   - Any JSON/data files mentioned
-   - **IMPORTANT**: Use the Read tool WITHOUT limit/offset parameters to read entire files
-   - **CRITICAL**: DO NOT spawn sub-tasks before reading these files yourself in the main context
-   - **NEVER** read files partially - if a file is mentioned, read it completely
+  - Ticket files
+  - Research documents
+  - Related implementation plans
+  - **IMPORTANT**: Use the Read tool WITHOUT limit/offset parameters to read entire files
+  - **CRITICAL**: DO NOT spawn sub-tasks before reading these files yourself
+  - **NEVER** read files partially
 
 2. **Research the codebase**:
-   - Use Glob to find relevant files by pattern
-   - Use Grep to find usages of key symbols
-   - Use Read to understand implementation details
-   - For broad searches across multiple directories: use `explore` agent
-   - For multi-step analysis: use `general` agent
+
+  - Use Glob to find relevant files by pattern
+  - Use Grep to find usages of key symbols
+  - Use Read to understand implementation details
+  - For broad searches across multiple directories: use `explore` agent
+  - For multi-step analysis: use `general` agent
+  - Read the project's wiki/docs via the content API if configured (check AGENTS.md)
 
 3. **Read all files identified by research**:
-   - After research completes, read ALL files identified as relevant
-   - Read them FULLY into the main context
-   - This ensures you have complete understanding before proceeding
+  - Read them FULLY into the main context
+  - This ensures you have complete understanding before proceeding
 
 4. **Analyze and verify understanding**:
-   - Cross-reference the ticket requirements with actual code
-   - Identify any discrepancies or misunderstandings
-   - Note assumptions that need verification
-   - Determine true scope based on codebase reality
+  - Cross-reference the ticket requirements with actual code
+  - Identify any discrepancies or misunderstandings
+  - Note assumptions that need verification
 
 5. **Present informed understanding and focused questions**:
-   ```
-   Based on the ticket and my codebase investigation, I understand we need [precise summary].
+  ```
+  Based on the ticket and my codebase investigation, I understand we need [precise summary].
 
-   I found that:
-   - [Current implementation detail with file:line reference]
-   - [Relevant pattern or constraint discovered]
-   - [Potential complexity or edge case identified]
+  I found that:
+  - [Current implementation detail with file:line reference]
+  - [Relevant pattern or constraint discovered]
 
-   Questions my investigation couldn't answer:
-   - [Technical question requiring human judgment]
-   - [Business logic clarification]
-   - [Design preference that affects implementation]
-   ```
+  Questions my investigation couldn't answer:
+  - [Technical question requiring human judgment]
+  - [Business logic clarification]
+  ```
 
-   Only ask questions that you genuinely cannot answer through code investigation.
+  Only ask questions that you genuinely cannot answer through code investigation.
 
 ### Step 2: Research & Discovery
 
-After getting initial clarifications:
-
-1. **If the user corrects any misunderstanding**:
-   - DO NOT just accept the correction
-   - Spawn new research tasks to verify the correct information
-   - Read the specific files/directories they mention
-   - Only proceed once you've verified the facts yourself
-
-2. **Create a research todo list** using TodoWrite to track exploration tasks
-
-3. **Research in depth**:
-   - Grep for patterns, conventions, similar implementations
-   - Read key files deeply
-   - Use `explore` agent with "very thorough" for comprehensive searches
-   - Run one agent at a time, verify results before proceeding
-
-4. **Wait for ALL research to complete** before proceeding
-
-5. **Present findings and design options**:
-   ```
-   Based on my research, here's what I found:
-
-   **Current State:**
-   - [Key discovery about existing code]
-   - [Pattern or convention to follow]
-
-   **Design Options:**
-   1. [Option A] - [pros/cons]
-   2. [Option B] - [pros/cons]
-
-   **Open Questions:**
-   - [Technical uncertainty]
-   - [Design decision needed]
-
-   Which approach aligns best with your vision?
-   ```
+After getting initial clarifications, research in depth using direct tools or agents. Present findings and design options.
 
 ### Step 3: Plan Structure Development
 
-Once aligned on approach:
+Once aligned on approach, create the initial plan outline and get feedback on structure before writing details.
 
-1. **Create initial plan outline**:
-   ```
-   Here's my proposed plan structure:
-
-   ## Overview
-   [1-2 sentence summary]
-
-   ## Implementation Phases:
-   1. [Phase name] - what it achieves
-   2. [Phase name] - what it achieves
-   3. [Phase name] - what it achieves
-
-   Does this phasing make sense? Should I adjust the order or granularity?
-   ```
-
-2. **Get feedback on structure** before writing details
-
-3. **Tag skills per phase**: Skip this step. All phases get `Skills: (none)`.
+Tag skills and rules per phase using `references/repo_skills_discovery.md`.
 
 ### Step 4: Detailed Plan Writing
 
-After structure approval:
-
-1. **Write the plan** to the appropriate location:
-
-    - **Both envs**: `thoughts/tickets/TICKET-123/YYYY-MM-DD-description.md`
-
-   Format: `YYYY-MM-DD-description.md` where description is a brief kebab-case description.
-
-2. **Use this template structure**:
-
-````markdown
-# [Feature/Task Name] Implementation Plan
-
-## Overview
-
-[Brief description of what we're implementing and why]
-
-## Current State Analysis
-
-[What exists now, what's missing, key constraints discovered]
-
-## Desired End State
-
-[A Specification of the desired end state after this plan is complete, and how to verify it]
-
-### Key Discoveries:
-- [Important finding with file:line reference]
-- [Pattern to follow]
-- [Constraint to work within]
-
-## What We're NOT Doing
-
-[Explicitly list out-of-scope items to prevent scope creep]
-
-## Implementation Approach
-
-[High-level strategy and reasoning]
-
-## Phase 1: [Descriptive Name]
-
-### Overview
-[What this phase accomplishes]
-
-### Changes Required:
-
-#### 1. [Component/File Group]
-**File**: `path/to/file.py` or `path/to/Component.tsx`
-**Changes**: [Summary of changes]
-
-```python
-# Specific code to add/modify
-```
-
-### Skills Required:
-Skills: [comma-separated skill names, or "(none)"]
-
-### Success Criteria:
-
-#### Automated Verification:
-- [ ] Tests pass
-- [ ] Linting passes
-- [ ] Migration applies cleanly
-
-#### Manual Verification:
-- [ ] Feature works as expected when tested
-- [ ] Edge case handling verified manually
-- [ ] No regressions in related features
-
-**Implementation Note**: After completing this phase and all automated verification passes, pause here for manual confirmation from the human that the manual testing was successful before proceeding to the next phase.
-
----
-
-## Phase 2: [Descriptive Name]
-
-[Similar structure with both automated and manual success criteria...]
-
----
-
-## Testing Strategy
-
-### Unit Tests:
-- [What to test]
-- [Key edge cases]
-
-### Integration Tests:
-- [End-to-end scenarios]
-
-### Manual Testing Steps:
-1. [Specific step to verify feature]
-2. [Another verification step]
-3. [Edge case to test manually]
-
-## Performance Considerations
-
-[Any performance implications or optimizations needed]
-
-## Migration Notes
-
-[If applicable, how to handle existing data/systems]
-
-## References
-
-- Related research: `thoughts/research/[relevant].md`
-- Similar implementation: `[file:line]`
-````
+Write the plan to the appropriate location per the project's AGENTS.md convention.
 
 ### Step 5: Review
 
-1. **Push the plan**: Run `/gcpush` to push to a branch so the team can see it.
-
-2. **Present the draft plan**:
-   ```
-   I created the initial plan at:
-   `[path]/YYYY-MM-DD-description.md`
-
-   Please review it and let me know:
-   - Do the phases have the right scope?
-   - Are the success criteria specific enough?
-   - Any technical details that need adjustment?
-   - Missing edge cases or considerations?
-   ```
-
-3. **Iterate based on feedback** - be ready to:
-   - Add missing phases
-   - Adjust technical approach
-   - Clarify success criteria (both automated and manual)
-   - Add/remove scope items
-
-4. **Continue refining** until the user is satisfied
+Present the draft plan for review and iterate based on feedback.
 
 ## Important Guidelines
 
-1. **Be Skeptical**:
-   - Question vague requirements
-   - Identify potential issues early
-   - Ask "why" and "what about"
-   - Don't assume - verify with code
-
-2. **Be Interactive**:
-   - Don't write the full plan in one shot
-   - Get buy-in at each major step
-   - Allow course corrections
-   - Work collaboratively
-
-3. **Be Thorough**:
-   - Read all context files COMPLETELY before planning
-   - Research actual code patterns
-   - Include specific file paths and line numbers
-   - Write measurable success criteria with clear automated vs manual distinction
-
-4. **Be Practical**:
-   - Focus on incremental, testable changes
-   - Consider migration and rollback
-   - Think about edge cases
-   - Include "what we're NOT doing"
-
-5. **Track Progress**:
-   - Use TodoWrite to track planning tasks
-   - Update todos as you complete research
-   - Mark planning tasks complete when done
-
-6. **No Open Questions in Final Plan**:
-   - If you encounter open questions during planning, STOP
-   - Research or ask for clarification immediately
-   - Do NOT write the plan with unresolved questions
-   - The implementation plan must be complete and actionable
-   - Every decision must be made before finalizing the plan
-
-7. **Every Phase Must Have Skill Tags**:
-   - Every phase in the final plan must include a `Skills:` line
-   - Always use `Skills: (none)` — domain skills don't exist
-   - Missing `Skills:` lines will cause the implementation phase to pause and ask, which wastes the user's time — get them right the first time
+1. **Be Skeptical**: Question vague requirements, identify potential issues early.
+2. **Be Interactive**: Don't write the full plan in one shot. Get buy-in at each major step.
+3. **Be Thorough**: Read all context files COMPLETELY before planning.
+4. **Be Practical**: Focus on incremental, testable changes. Think about edge cases.
+5. **Track Progress**: Use TodoWrite to track planning tasks.
+6. **No Open Questions in Final Plan**: Every decision must be made before finalizing.
+7. **Every Phase Must Have Skill AND Rule Tags**: Both lines mandatory.
 
 ## Success Criteria Guidelines
 
-**Always separate success criteria into two categories:**
-
-1. **Automated Verification** (can be run by agents):
-   - Linter/formatter commands
-   - Test suites
-   - Migration checks
-   - Type checking
-
-2. **Manual Verification** (requires human testing):
-   - UI/UX functionality
-   - Performance under real conditions
-   - Edge cases that are hard to automate
-   - User acceptance criteria
-
-**Format example:**
-```markdown
-### Success Criteria:
-
-#### Automated Verification:
-- [ ] Tests pass: `pytest`
-- [ ] No linting errors: `ruff check .`
-- [ ] Migration applies cleanly: `python manage.py migrate --check`
-
-#### Manual Verification:
-- [ ] Feature works as expected
-- [ ] Error messages are user-friendly
-- [ ] No regressions in related features
-```
+**Always separate success criteria into:**
+1. **Automated Verification** (agent-runnable)
+2. **Manual Verification** (requires human testing)
 
 ## Common Patterns
 
 ### For Database Changes:
-- Start with schema/migration
-- Add model/repository layer
-- Update business logic
-- Expose via API endpoint
-- Update frontend
+- Start with schema/migration → Add model layer → Update business logic → Expose via API → Update frontend
 
 ### For New Features:
-- Research existing patterns first
-- Start with data model
-- Build backend logic
-- Add API endpoints
-- Implement UI last
+- Research existing patterns → Start with data model → Build backend logic → Add API endpoints → Implement UI
 
 ### For Refactoring:
-- Document current behavior
-- Plan incremental changes
-- Maintain backwards compatibility
-- Include migration strategy
+- Document current behavior → Plan incremental changes → Maintain backwards compatibility
 
 ## Sub-task Spawning Best Practices
 
-When spawning research sub-tasks:
-
-1. Run one agent at a time, verify before proceeding
-2. **Each task should be focused** on a specific area
-4. **Provide detailed instructions** including:
-   - Exactly what to search for
-   - Which directories to focus on
-   - What information to extract
-   - Expected output format
-5. **Be EXTREMELY specific about directories**:
-   - If the ticket mentions "POS", specify `apps/pos/` directory
-   - If it mentions "products", specify `apps/products/` directory
-   - Include the full path context in your prompts
-6. **Specify read-only tools** to use
-7. **Request specific file:line references** in responses
-8. **Wait for all tasks to complete** before synthesizing
-9. **Verify sub-task results**:
-   - If a sub-task returns unexpected results, spawn follow-up tasks
-   - Cross-check findings against the actual codebase
-   - Don't accept results that seem incorrect
+1. **Spawn multiple tasks in parallel** for efficiency (Claude Code)
+2. **OpenCode**: Run one agent at a time, verify before proceeding
+3. **Each task should be focused** on a specific area
+4. **Provide detailed instructions** including what to search for and which directories
+5. **Specify read-only tools** to use
+6. **Wait for all tasks to complete** before synthesizing
+7. **Verify sub-task results** — cross-check against the actual codebase

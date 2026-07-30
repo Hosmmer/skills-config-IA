@@ -66,6 +66,8 @@ Before starting any phase, locate that phase's `Skills:` line under `### Skills 
 
 **Hard rule for backend phases**: Any phase that modifies files under `backend/**/*` MUST load the `django` skill.
 
+**Hard rule for database changes**: NEVER modify the database directly (via `manage.py shell`, `psql`, or raw SQL) without explicit user permission. Module names, roles, configuration data — all belong to the user. Your job is code, not data. The user manages their own data through the admin UI.
+
 **Announce which skills you're loading so the human can verify:**
 
 ```

@@ -62,6 +62,10 @@ If you encounter a mismatch:
 
 Before starting any phase, locate that phase's `Skills:` line under `### Skills Required:`. For each skill listed, load it into context by reading the SKILL.md from the repo's skills directory.
 
+**Hard rule for frontend phases**: Any phase that modifies files under `frontend/**/*` MUST load both `react` and `tailwind-design` skills. Even if the plan only lists one of them, you are responsible for loading both. The AGENTS.md states `tailwind-design` must be loaded "always when editing frontend/**/*" — do not skip this.
+
+**Hard rule for backend phases**: Any phase that modifies files under `backend/**/*` MUST load the `django` skill.
+
 **Announce which skills you're loading so the human can verify:**
 
 ```

@@ -36,19 +36,23 @@ Use the `question` tool or ask for a simple yes/no. DO NOT touch code until rece
 
 ### Step 4: Implement
 
+- **BEFORE writing any code**: load the domain skill(s) that match the files being modified (see Domain Skills Map in `.opencode/AGENTS.md`). For frontend files: load `react`, `tailwind-design`, and `frontend-testing`. For backend files: load `django`, `backend-testing`.
 - Make all edits with the Edit tool.
 - If DB migration is needed, generate the file with the project's migration command (`python manage.py makemigrations` for Django). DO NOT apply it — the user decides when to migrate.
+- **AFTER implementing**: write tests following the patterns in the domain testing skill. Run tests to verify they pass.
 - Show a brief summary of what was changed when done.
 
 ### Step 5: Verify
 
 - Run the project's linter (check AGENTS.md or Makefile for the canonical command).
-- Run relevant tests if they exist and can be executed locally.
+- Run **all** tests — both frontend AND backend — to confirm no regressions.
 - Confirm no references to the old pattern remain (re-grep if necessary).
 
 ## Anti-patterns (what to NEVER do)
 
 - ❌ Jump straight to editing without presenting findings and options
+- ❌ Skip loading domain skills before implementing — always load react/tailwind-design/frontend-testing for frontend, django/backend-testing for backend
+- ❌ Implement without writing tests — tests are mandatory, not optional
 - ❌ Write a plan file for a simple change
 - ❌ Spawn 3+ sub-agents for a 1-file change
 - ❌ Run migrations without explicit user permission

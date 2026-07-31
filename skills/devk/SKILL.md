@@ -14,6 +14,8 @@ This skill is a **binding contract**, not a reference. When loaded, the agent MU
 - **Follow steps in order.** Pipeline order is not a suggestion. No skipping, reordering, or "shortcutting" without explicit user approval.
 - **Read referenced files before acting.** When a step says "Read `references/X.md`", read it BEFORE doing the step. Never act from memory or assumption.
 - **Get explicit approval at every gate.** Spec, plan, and each phase transition require user approval before proceeding.
+- **Load domain skills BEFORE implementing.** Read the relevant domain skills (frontend-testing, backend-testing, react, django, tailwind-design) based on which files will be modified. Never write code or tests without loading the corresponding domain skill first.
+- **Run ALL tests after implementing.** After code changes, run both frontend and backend tests to verify no regressions.
 - **Never write code before the plan is approved.** The Golden Rule has no exceptions.
 - **Never declare done before QA passes AND documentation is complete.**
 - **Surface deviations immediately.** If reality contradicts the plan, stop and present the issue. Do not silently adapt.
